@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 import pytz
 import os
 import math
+import random
 
 class Metadata(object):
     ''' Container for Micasense image metadata'''
@@ -230,13 +231,22 @@ class Metadata(object):
 
     def vignette_center(self):
         ''' get the vignette center in X and Y image coordinates'''
-        nelem = self.size('XMP:VignettingCenter')
-        return [float(self.get_item('XMP:VignettingCenter', i)) for i in range(nelem)]
+        image_width = self.get_item('EXIF:ImageWidth')
+        image_height = self.get_item('EXIF:ImageHeight')
+        random_gaussian_w = random.gauss(2, 0.1)
+        random_gaussian_h = random.gauss(2, 0.1)
+
+        image_width /= random_gaussian_w
+        image_height /= random_gaussian_h
+
+        return [image_width, image_height]
+        # nelem = self.size('XMP:VignettingCenter')
+        # return [float(self.get_item('XMP:VignettingCenter', i)) for i in range(nelem)]
 
     def vignette_polynomial(self):
         ''' get the radial vignette polynomial in the order it's defined in the metadata'''
         nelem = self.size('XMP:VignettingPolynomial')
-        return [float(self.get_item('XMP:VignettingPolynomial', i)) for i in range(nelem)]
+        return [float(self.get_item('XMP:VignettingPolynomial2D', i)) for i in range(nelem)] #  XMP:VignettingPolynomial
 
     def distortion_parameters(self):
         nelem = self.size('XMP:PerspectiveDistortion')
