@@ -35,6 +35,9 @@ import random
 class Metadata(object):
     ''' Container for Micasense image metadata'''
     def __init__(self, filename, exiftoolPath=None, exiftool_obj=None):
+        self.calculated_vignette_center = 0
+        self.vignette_center_x = 0
+        self.vignette_center_y = 0
         if exiftool_obj is not None:
             self.exif = exiftool_obj.get_metadata(filename)
             return
@@ -229,19 +232,24 @@ class Metadata(object):
         ''' get the number of bits per pixel, which defines the maximum digital number value in the image '''
         return self.get_item('EXIF:BitsPerSample')
 
+    def _calculate_vignette_center(self):
+        if not self.calculated_vignette_center:
+            self.calculated_vignette_center = 1
+            image_width = self.get_item('EXIF:ImageWidth')
+            image_height = self.get_item('EXIF:ImageHeight')
+            random_gaussian_w = random.gauss(2, 0.1)
+            random_gaussian_h = random.gauss(2, 0.1)
+
+            self.vignette_center_x = image_width / random_gaussian_w
+            self.vignette_center_y = image_height / random_gaussian_h
+
+            return [self.vignette_center_x, self.vignette_center_y]
+        else:
+            return [self.vignette_center_x, self.vignette_center_y]
+
     def vignette_center(self):
         ''' get the vignette center in X and Y image coordinates'''
-        image_width = self.get_item('EXIF:ImageWidth')
-        image_height = self.get_item('EXIF:ImageHeight')
-        random_gaussian_w = random.gauss(2, 0.1)
-        random_gaussian_h = random.gauss(2, 0.1)
-
-        image_width /= random_gaussian_w
-        image_height /= random_gaussian_h
-
-        return [image_width, image_height]
-        # nelem = self.size('XMP:VignettingCenter')
-        # return [float(self.get_item('XMP:VignettingCenter', i)) for i in range(nelem)]
+        return self._calculate_vignette_center()
 
     def vignette_polynomial(self):
         ''' get the radial vignette polynomial in the order it's defined in the metadata'''

@@ -78,12 +78,12 @@ def raw_image_to_radiance(meta, imageRaw):
 
 def vignette_map(meta, xDim, yDim):
     # get vignette center
-    xVignette = float(meta.get_item('XMP:VignettingCenter', 0))
-    yVignette = float(meta.get_item('XMP:VignettingCenter', 1))
+    xVignette = meta.vignette_center()[0] # float(meta.get_item('XMP:VignettingCenter', 0))
+    yVignette = meta.vignette_center()[1] # float(meta.get_item('XMP:VignettingCenter', 1))
 
     # get vignette polynomial
-    NvignettePoly = meta.size('XMP:VignettingPolynomial')
-    vignettePolyList = [float(meta.get_item('XMP:VignettingPolynomial', i)) for i in range(NvignettePoly)]
+    NvignettePoly = meta.size('XMP:VignettingPolynomial2D')
+    vignettePolyList = [float(meta.get_item('XMP:VignettingPolynomial2D', i)) for i in range(NvignettePoly)]
 
     # reverse list and append 1., so that we can call with numpy polyval
     vignettePolyList.reverse()
