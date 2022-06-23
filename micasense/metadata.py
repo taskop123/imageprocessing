@@ -240,8 +240,8 @@ class Metadata(object):
             random_gaussian_w = random.gauss(2, 0.1)
             random_gaussian_h = random.gauss(2, 0.1)
 
-            self.vignette_center_x = image_width / random_gaussian_w
-            self.vignette_center_y = image_height / random_gaussian_h
+            self.vignette_center_x = image_width / 2 # random_gaussian_w
+            self.vignette_center_y = image_height / 2 # random_gaussian_h
 
             return [self.vignette_center_x, self.vignette_center_y]
         else:
