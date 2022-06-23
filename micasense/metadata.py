@@ -252,12 +252,12 @@ class Metadata(object):
     #     return self._calculate_vignette_center()
 
     def vignette_polynomial_2d_name(self):
-        poly_2d_name = meta.get_item('XMP:VignettingPolynomial2DName')
+        poly_2d_name = self.get_item('XMP:VignettingPolynomial2DName')
         return [ int(poly_v) for poly_v in poly_2d_name.split(',')]
 
     def vignette_polynomial_2d(self):
         ''' get the radial vignette polynomial in the order it's defined in the metadata'''
-        poly_2d = meta.get_item('XMP:VignettingPolynomial2D')
+        poly_2d = self.get_item('XMP:VignettingPolynomial2D')
         return [ float(poly_v) for poly_v in poly_2d.split(',')]
 
     def distortion_parameters(self):
