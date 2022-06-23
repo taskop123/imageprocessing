@@ -333,6 +333,7 @@ class Image(object):
 
         # perform vignette correction
         # get coordinate grid across image, seem swapped because of transposed vignette
+
         x_dim, y_dim = self.raw().shape[1], self.raw().shape[0]
         x, y = np.meshgrid(np.arange(x_dim), np.arange(y_dim))
 
@@ -343,7 +344,7 @@ class Image(object):
         w_norm = x / x_dim
         h_norm = y / y_dim
 
-        vignette_mat = np.zeros(shape=(xn_dim, yn_dim))
+        vignette_mat = np.zeros(shape=(x_dim, y_dim))
 
         for i in range(v_poly_mat.shape[0]):
             for j in range(v_poly_mat.shape[1]):
