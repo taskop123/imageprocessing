@@ -232,29 +232,33 @@ class Metadata(object):
         ''' get the number of bits per pixel, which defines the maximum digital number value in the image '''
         return self.get_item('EXIF:BitsPerSample')
 
-    def _calculate_vignette_center(self):
-        if not self.calculated_vignette_center:
-            self.calculated_vignette_center = 1
-            image_width = self.get_item('EXIF:ImageWidth')
-            image_height = self.get_item('EXIF:ImageHeight')
-            random_gaussian_w = random.gauss(2, 0.1)
-            random_gaussian_h = random.gauss(2, 0.1)
+    # def _calculate_vignette_center(self):
+    #     if not self.calculated_vignette_center:
+    #         self.calculated_vignette_center = 1
+    #         image_width = self.get_item('EXIF:ImageWidth')
+    #         image_height = self.get_item('EXIF:ImageHeight')
+    #         random_gaussian_w = random.gauss(2, 0.1)
+    #         random_gaussian_h = random.gauss(2, 0.1)
+    #
+    #         self.vignette_center_x = image_width / 2 # random_gaussian_w
+    #         self.vignette_center_y = image_height / 2 # random_gaussian_h
+    #
+    #         return [self.vignette_center_x, self.vignette_center_y]
+    #     else:
+    #         return [self.vignette_center_x, self.vignette_center_y]
+    #
+    # def vignette_center(self):
+    #     ''' get the vignette center in X and Y image coordinates'''
+    #     return self._calculate_vignette_center()
 
-            self.vignette_center_x = image_width / 2 # random_gaussian_w
-            self.vignette_center_y = image_height / 2 # random_gaussian_h
+    def vignette_polynomial_2d_name(self):
+        poly_2d_name = meta.get_item('XMP:VignettingPolynomial2DName')
+        return [ int(poly_v) for poly_v in poly_2d_name.split(',')]
 
-            return [self.vignette_center_x, self.vignette_center_y]
-        else:
-            return [self.vignette_center_x, self.vignette_center_y]
-
-    def vignette_center(self):
-        ''' get the vignette center in X and Y image coordinates'''
-        return self._calculate_vignette_center()
-
-    def vignette_polynomial(self):
+    def vignette_polynomial_2d(self):
         ''' get the radial vignette polynomial in the order it's defined in the metadata'''
-        nelem = self.size('XMP:VignettingPolynomial')
-        return [float(self.get_item('XMP:VignettingPolynomial2D', i)) for i in range(nelem)] #  XMP:VignettingPolynomial
+        poly_2d = meta.get_item('XMP:VignettingPolynomial2D')
+        return [ float(poly_v) for poly_v in poly_2d.split(',')]
 
     def distortion_parameters(self):
         nelem = self.size('XMP:PerspectiveDistortion')

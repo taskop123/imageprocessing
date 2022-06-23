@@ -90,8 +90,6 @@ class Image(object):
         self.gain = self.meta.gain()
         self.bits_per_pixel = self.meta.bits_per_pixel()
 
-        self.vignette_center = self.meta.vignette_center()
-        self.vignette_polynomial = self.meta.vignette_polynomial()
         self.distortion_parameters = self.meta.distortion_parameters()
         self.principal_point = self.meta.principal_point()
         self.focal_plane_resolution_px_per_mm = self.meta.focal_plane_resolution_px_per_mm()
@@ -101,6 +99,8 @@ class Image(object):
         self.bandwidth = self.meta.bandwidth()
         self.rig_relatives = self.meta.rig_relatives()
         self.spectral_irradiance = self.meta.spectral_irradiance()
+        self.vignette_polynomial_2d = self.meta.vignette_polynomial_2d()
+        self.vignette_polynomial_2d_name = self.meta.vignette_polynomial_2d_name()
 
         self.auto_calibration_image = self.meta.auto_calibration_image()
         self.panel_albedo = self.meta.panel_albedo()
@@ -316,38 +316,42 @@ class Image(object):
         self.__radiance_image = radiance_image.T
         return self.__radiance_image
 
-    def vignette(self):
+    def vignette(self):  # 2D polynomial
         ''' Get a numpy array which defines the value to multiply each pixel by to correct
         for optical vignetting effects.
         Note: this array is transposed from normal image orientation and comes as part
         of a three-tuple, the other parts of which are also used by the radiance method.
         '''
-        # get vignette center
-        vignette_center_x, vignette_center_y = self.vignette_center
 
-        # get a copy of the vignette polynomial because we want to modify it here
-        v_poly_list = list(self.vignette_polynomial)
-
-        # reverse list and append 1., so that we can call with numpy polyval
-        v_poly_list.reverse()
-        v_poly_list.append(1.)
-        v_polynomial = np.array(v_poly_list)
+        # get vignette 2d polynomial terms
+        dim_poly = np.max(self.vignette_polynomial_2d_name) + 1
+        v_poly_mat = np.zeros(shape=(dim_poly, dim_poly))
+        for i in range(0, len(self.vignette_polynomial_2d)):
+            x_m = self.vignette_polynomial_2d_name[2 * i]
+            y_m = self.vignette_polynomial_2d_name[2 * i + 1]
+            v_poly_mat[x_m, y_m] = self.vignette_polynomial_2d[i]
 
         # perform vignette correction
         # get coordinate grid across image, seem swapped because of transposed vignette
         x_dim, y_dim = self.raw().shape[1], self.raw().shape[0]
         x, y = np.meshgrid(np.arange(x_dim), np.arange(y_dim))
 
-        #meshgrid returns transposed arrays
+        # meshgrid returns transposed arrays
         x = x.T
         y = y.T
 
-        # compute matrix of distances from image center
-        r = np.hypot((x-vignette_center_x), (y-vignette_center_y))
+        w_norm = x / x_dim
+        h_norm = y / y_dim
+
+        vignette_mat = np.zeros(shape=(xn_dim, yn_dim))
+
+        for i in range(v_poly_mat.shape[0]):
+            for j in range(v_poly_mat.shape[1]):
+                vignette_mat += v_poly_mat[i, j] * (w_norm ** i) * (h_norm ** j)
 
         # compute the vignette polynomial for each distance - we divide by the polynomial so that the
         # corrected image is image_corrected = image_original * vignetteCorrection
-        vignette = 1./np.polyval(v_polynomial, r)
+        vignette = 1. / vignette_mat
         return vignette, x, y
 
     def undistorted_radiance(self, force_recompute=False):
