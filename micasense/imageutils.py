@@ -256,7 +256,7 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
         warp_matrices.append(capture.get_warp_matrices(ref_index)[-1])
 
     # Create aligned stack
-    cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_mode)
+    cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_modes[0])
     im_cropped = aligned_capture(capture, warp_matrices, warp_modes[0], cropped_dimensions, ref_index, img_type=img_type)
 
     # Another alignment
@@ -304,7 +304,7 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
 
     if capture.images[-1].band_name == 'LWIR':
         img = capture.images[-1]
-        alignment_pairs.append({'warp_mode': warp_modes[0],
+        alignment_pairs.append({'warp_mode': warp_modes[1],
                                 'max_iterations': max_iterations,
                                 'epsilon_threshold': epsilon_threshold,
                                 'ref_index': ref_index,
