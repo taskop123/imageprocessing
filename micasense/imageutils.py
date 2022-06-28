@@ -257,7 +257,7 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
 
     # Create aligned stack
     # cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_modes[0])
-    im_aligned = aligned_capture(capture, warp_matrices, warp_modes[0], (0, 0, 0, 0), ref_index, img_type=img_type)
+    im_aligned = aligned_capture_without_image_cropping(capture, warp_matrices, warp_modes[0], img_type=img_type)
 
     # Another alignment
     alignment_pairs = []
@@ -317,6 +317,31 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
 
 
     return warp_matrices, alignment_pairs
+
+
+#apply homography to create an aligned stack
+def aligned_capture_without_image_cropping(capture, warp_matrices, warp_mode, img_type='reflectance', interpolation_mode=cv2.INTER_LANCZOS4):
+    width, height = capture.images[0].size()
+
+    im_aligned = np.zeros((height,width,len(warp_matrices)), dtype=np.float32 )
+
+    for i in range(0,len(warp_matrices)):
+        if img_type == 'reflectance':
+            img = capture.images[i].undistorted_reflectance()
+        else:
+            img = capture.images[i].undistorted_radiance()
+
+        if warp_mode != cv2.MOTION_HOMOGRAPHY:
+            im_aligned[:,:,i] = cv2.warpAffine(img,
+                                            warp_matrices[i],
+                                            (width,height),
+                                            flags=interpolation_mode + cv2.WARP_INVERSE_MAP)
+        else:
+            im_aligned[:,:,i] = cv2.warpPerspective(img,
+                                                warp_matrices[i],
+                                                (width,height),
+                                                flags=interpolation_mode + cv2.WARP_INVERSE_MAP)
+    return im_aligned
 
 #apply homography to create an aligned stack
 def aligned_capture(capture, warp_matrices, warp_mode, cropped_dimensions, match_index, img_type = 'reflectance',interpolation_mode=cv2.INTER_LANCZOS4):
