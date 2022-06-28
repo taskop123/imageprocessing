@@ -256,8 +256,8 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
         warp_matrices.append(capture.get_warp_matrices(ref_index)[-1])
 
     # Create aligned stack
-    cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_modes[0])
-    im_cropped = aligned_capture(capture, warp_matrices, warp_modes[0], cropped_dimensions, ref_index, img_type=img_type)
+    # cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_modes[0])
+    im_aligned = aligned_capture(capture, warp_matrices, warp_modes[0], (0, 0, 0, 0), ref_index, img_type=img_type)
 
     # Another alignment
     alignment_pairs = []
@@ -273,7 +273,7 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
                                     'ref_index': ref_index,
                                     'ref_image': ref_img,
                                     'match_index': i,
-                                    'match_image': im_cropped[:, :, i], #  img.undistorted(img.radiance()).astype('float32'),
+                                    'match_image': im_aligned[:, :, i], #  img.undistorted(img.radiance()).astype('float32'),
                                     'translations': translations,
                                     'warp_matrix_init': np.array(warp_matrices_init[i], dtype=np.float32),
                                     'debug': debug,
