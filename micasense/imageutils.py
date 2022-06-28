@@ -256,7 +256,7 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
         warp_matrices.append(capture.get_warp_matrices(ref_index)[-1])
 
     # Create aligned stack
-    cropped_dimensions, edges = imageutils.find_crop_bounds(capture, warp_matrices, warp_mode=warp_mode)
+    cropped_dimensions, edges = find_crop_bounds(capture, warp_matrices, warp_mode=warp_mode)
     im_cropped = aligned_capture(capture, warp_matrices, warp_modes[0], cropped_dimensions, ref_index, img_type=img_type)
 
     # Another alignment
