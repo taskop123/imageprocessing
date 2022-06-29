@@ -319,6 +319,77 @@ def align_capture(capture, ref_index=1, warp_modes=[], max_iterations=2500, epsi
     return warp_matrices, alignment_pairs
 
 
+def align_capture_custom(capture, ref_index=1, warp_mode=cv2.MOTION_HOMOGRAPHY, max_iterations=2500, epsilon_threshold=1e-9, multithreaded=True, debug=False, pyramid_levels = None, ignore_rig = False):
+    '''Align images in a capture using openCV
+    MOTION_TRANSLATION sets a translational motion model; warpMatrix is 2x3 with the first 2x2 part being the unity matrix and the rest two parameters being estimated.
+    MOTION_EUCLIDEAN sets a Euclidean (rigid) transformation as motion model; three parameters are estimated; warpMatrix is 2x3.
+    MOTION_AFFINE sets an affine motion model (DEFAULT); six parameters are estimated; warpMatrix is 2x3.
+    MOTION_HOMOGRAPHY sets a homography as a motion model; eight parameters are estimated;warpMatrix is 3x3.
+    best results will be AFFINE and HOMOGRAPHY, at the expense of speed
+    '''
+    # Match other bands to this reference image (index into capture.images[])
+    ref_img = capture.images[ref_index].undistorted(capture.images[ref_index].radiance()).astype('float32')
+    if not ignore_rig and capture.has_rig_relatives():
+        warp_matrices_init = capture.get_warp_matrices(ref_index=ref_index)
+    else:
+        warp_matrices_init = [default_warp_matrix(warp_mode)]*len(capture.images)
+    alignment_pairs = []
+    for i,img in enumerate(capture.images):
+        if not ignore_rig and img.rig_relatives is not None:
+            translations = img.rig_xy_offset_in_px()
+        else:
+            translations = (0,0)
+        if img.band_name != 'LWIR':
+            alignment_pairs.append({'warp_mode': warp_mode,
+                                    'max_iterations': max_iterations,
+                                    'epsilon_threshold': epsilon_threshold,
+                                    'ref_index':ref_index,
+                                    'ref_image': ref_img,
+                                    'match_index':i,
+                                    'match_image':img.undistorted(img.radiance()).astype('float32'),
+                                    'translations': translations,
+                                    'warp_matrix_init': np.array(warp_matrices_init[i], dtype=np.float32),
+                                    'debug': debug,
+                                    'pyramid_levels': pyramid_levels})
+
+    warp_matrices = [None]*len(alignment_pairs)
+
+    #required to work across linux/mac/windows, see https://stackoverflow.com/questions/47852237
+    if multithreaded and multiprocessing.get_start_method() != 'spawn':
+        try:
+            multiprocessing.set_start_method('spawn',force=True)
+        except ValueError:
+            multithreaded = False
+
+    if(multithreaded):
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+        for _,mat in enumerate(pool.imap_unordered(align, alignment_pairs)):
+            warp_matrices[mat['match_index']] = mat['warp_matrix']
+            print("Finished aligning band {}".format(mat['match_index']))
+        pool.close()
+        pool.join()
+    else:
+        # Single-threaded alternative
+        for pair in alignment_pairs:
+            mat = align(pair)
+            warp_matrices[mat['match_index']] = mat['warp_matrix']
+            print("Finished aligning band {}".format(mat['match_index']))
+    if capture.images[-1].band_name == 'LWIR':
+        img = capture.images[-1]
+        alignment_pairs.append({'warp_mode': warp_mode,
+                                'max_iterations': max_iterations,
+                                'epsilon_threshold': epsilon_threshold,
+                                'ref_index':ref_index,
+                                'ref_image': ref_img,
+                                'match_index':img.band_index,
+                                'match_image':img.undistorted(img.radiance()).astype('float32'),
+                                'translations': translations,
+                                'debug': debug})
+        warp_matrices.append(capture.get_warp_matrices(ref_index)[-1])
+
+    return warp_matrices, alignment_pairs
+
+
 #apply homography to create an aligned stack
 def aligned_capture_without_image_cropping(capture, warp_matrices, warp_mode, img_type='reflectance', interpolation_mode=cv2.INTER_LANCZOS4):
     width, height = capture.images[0].size()
