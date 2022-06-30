@@ -178,7 +178,7 @@ class Image(object):
         return self.horizontal_irradiance_from_direct_scattered()
     
     def get_ready_undistorted(self):
-        return self.__radiance_image
+        return self.__undistorted_image
     
     def compute_horizontal_irradiance_dls2(self):
         ''' Compute the proper solar elevation, solar azimuth, and horizontal irradiance 
