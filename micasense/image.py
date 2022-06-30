@@ -177,6 +177,9 @@ class Image(object):
         # compute irradiance on the ground using the solar altitude angle
         return self.horizontal_irradiance_from_direct_scattered()
     
+    def get_ready_undistorted(self):
+        return self.__radiance_image
+    
     def compute_horizontal_irradiance_dls2(self):
         ''' Compute the proper solar elevation, solar azimuth, and horizontal irradiance 
             for cases where the camera system did not do it correctly '''
