@@ -226,6 +226,10 @@ class Image(object):
         ''' set undistorted image from input img'''
         self.__undistorted_image = img.astype(np.uint16)
         
+    def set_undistorted_custom(self,img):
+        ''' set undistorted image from input img'''
+        self.__undistorted_image = img
+        
     def set_external_rig_relatives(self,external_rig_relatives):
         self.rig_translations = external_rig_relatives['rig_translations']
         #external rig relatives are in rad
