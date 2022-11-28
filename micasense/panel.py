@@ -194,7 +194,7 @@ class Panel(object):
         reference_qr_pts = np.asarray([[-p, p], [p, p], [p, -p], [-p, -p]], dtype=np.float32)
         bounds = []
         costs = []
-        for rotation in range(0,4):
+        for rotation in [3]:
             qr_points = np.roll(reference_qr_pts, rotation, axis=0)
 
             src = np.asarray([tuple(row) for row in qr_points[:]], np.float32)
