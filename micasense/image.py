@@ -334,7 +334,7 @@ class Image(object):
 
         return value
 
-    def vignette(self):
+    def new_vignette(self):
         powers_coefficients = []
         power_items = self.vignette_polynomial_2d_name
         coefficient_items = self.vignette_polynomial_2d
@@ -361,7 +361,7 @@ class Image(object):
 
         return final_vignette, x, y
 
-    def old_vignette(self):  # 2D polynomial
+    def vignette(self):  # 2D polynomial
         ''' Get a numpy array which defines the value to multiply each pixel by to correct
         for optical vignetting effects.
         Note: this array is transposed from normal image orientation and comes as part
@@ -398,6 +398,7 @@ class Image(object):
         # compute the vignette polynomial for each distance - we divide by the polynomial so that the
         # corrected image is image_corrected = image_original * vignetteCorrection
         vignette = 1. / vignette_mat
+
         return vignette, x, y
 
     def undistorted_radiance(self, force_recompute=False):
